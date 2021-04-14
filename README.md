@@ -8,3 +8,8 @@
 * The estimated pose of the robot will be updated by averaging the position and angles of all of the particles. `update_estimated_robot_pose` can be tested by simply verifying that the robot's udpated position is correct using different lists of updated particles, before and after a state change.
 * Noise: Noise will be added in `update_particles_with_motion_model`, where some random amount of noise is added to each particle's movement and rotation. The noise we will use will be Gaussian noise with mean 0 and a small variance. We will determine the appropriate amount of variance through trial and error. The `np.random.normal()` function is appropriate to generate this noise. 
 #### Timeline:
+* Fri. April 16th - finish writing/testing `initialize_particle_cloud`
+* Sat. April 17th - finish writing/testing `update_particles_with_motion_model`
+* Mon. April 19th - finish writing/testing `update_particle_weights_with_measurement_model`
+* Wed. April 21st - finish writing/testing `normalize_particles` and `resample_particles`
+* Fri. April 23rd - finish writing/testing `update_estimated_robot_pose`
