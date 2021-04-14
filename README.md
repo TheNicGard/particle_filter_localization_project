@@ -1,1 +1,4 @@
-# particle_filter_localization_project
+# Particle Filter Localization Project
+### Team members: Nic Gard, Karhan Kayan
+* **Implementation:**
+* **Timeline:**
