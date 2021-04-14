@@ -6,5 +6,5 @@
 * Importance weights: **???**
 * Normalizing the particles' importance weights can be done by summing their weights, getting the inverse of this sum, and multiplying this with each particle's importance weight. Resampling the particles will be done using Python's `random.choice`, which is able to select elements in a list using probability weights. Testing of `normalize_particles` can be done by verifying the result of the calculation, and testing of `resample_particles` can be done by running multiple trials, and determining that a weighted choice is able to select a particle with the probability that its weight suggests (e.g. if a particle has an importance weigt of 0.1, 100 trils should show that it is selected approximately 10 times).
 * The estimated pose of the robot will be updated by averaging the position of all of the particles. `update_estimated_robot_pose` can be tested by simply verifying that the robot's udpated position is correct using different lists of updated particles, before and after a state change.
-* Noise: **???**
+* Noise: Noise will be added in `update_particles_with_motion_model`, where some random amount of noise is added to each particle's movement and rotation, up to a predetermined fixed amount found during testing.
 #### Timeline:
