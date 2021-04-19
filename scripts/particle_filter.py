@@ -115,17 +115,27 @@ class ParticleFilter:
         self.initialized = True
 
 
-
+    """ get_map: callback method for to set the map variable. """
     def get_map(self, data):
-
         self.map = data
-    
 
+
+    # TODO
     def initialize_particle_cloud(self):
+        resolution = self.map.info.resolution
+        map_width = resolution * self.map.info.width
+        map_height = resolution * self.map.info.height
+        map_x_offset = self.map.info.origin.position.x
+        map_y_offset = self.map.info.origin.position.y
+
+        for i in range(self.num_particles):
+            x = random_sample() * map_width + map_x_offset
+            y = random_sample() * map_height + map_y_offset
+            x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
+            q = quaternion_from_euler(x_rot, y_rot, z_rot)
+            self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
         
-        # TODO
-
-
+        
         self.normalize_particles()
 
         self.publish_particle_cloud()
@@ -133,16 +143,13 @@ class ParticleFilter:
 
     def normalize_particles(self):
         # make all the particle weights sum to 1.0
-        
+        return None
         # TODO
 
 
-
     def publish_particle_cloud(self):
-
         particle_cloud_pose_array = PoseArray()
         particle_cloud_pose_array.header = Header(stamp=rospy.Time.now(), frame_id=self.map_topic)
-        particle_cloud_pose_array.poses
 
         for part in self.particle_cloud:
             particle_cloud_pose_array.poses.append(part.pose)
@@ -151,9 +158,7 @@ class ParticleFilter:
 
 
 
-
     def publish_estimated_robot_pose(self):
-
         robot_pose_estimate_stamped = PoseStamped()
         robot_pose_estimate_stamped.pose = self.robot_estimate
         robot_pose_estimate_stamped.header = Header(stamp=rospy.Time.now(), frame_id=self.map_topic)
@@ -162,13 +167,15 @@ class ParticleFilter:
 
 
     def resample_particles(self):
-
+        return None
         # TODO
 
 
 
     def robot_scan_received(self, data):
-
+        # TODO: is this a good place to put this method?
+        self.publish_particle_cloud()
+        
         # wait until initialization is complete
         if not(self.initialized):
             return
@@ -241,13 +248,13 @@ class ParticleFilter:
 
     def update_estimated_robot_pose(self):
         # based on the particles within the particle cloud, update the robot pose estimate
-        
+        return None
         # TODO
 
 
     
     def update_particle_weights_with_measurement_model(self, data):
-
+        return None
         # TODO
 
 
@@ -257,7 +264,7 @@ class ParticleFilter:
 
         # based on the how the robot has moved (calculated from its odometry), we'll  move
         # all of the particles correspondingly
-
+        return None
         # TODO
 
 
