@@ -134,19 +134,22 @@ class ParticleFilter:
             x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
             q = quaternion_from_euler(x_rot, y_rot, z_rot)
             self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
-        
-        
+            
         self.normalize_particles()
 
         self.publish_particle_cloud()
 
 
     def normalize_particles(self):
-        # make all the particle weights sum to 1.0
-        return None
-        # TODO
+        sum_weights = 0
+        
+        for p in self.particle_cloud:
+            sum_weights += p.w
+            
+        for p in self.particle_cloud:
+            p.w /= sum_weights
 
-
+            
     def publish_particle_cloud(self):
         particle_cloud_pose_array = PoseArray()
         particle_cloud_pose_array.header = Header(stamp=rospy.Time.now(), frame_id=self.map_topic)
