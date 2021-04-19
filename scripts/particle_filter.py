@@ -120,7 +120,14 @@ class ParticleFilter:
         self.map = data
 
 
-    # TODO
+    """
+    initialize_particle_cloud: initialize the particle cloud. Creates
+    num_particles particles across the map, based on the width and height of the
+    map (adjusted for the resolution of the map and its origin). Each particle
+    has a random x, y, and theta (rotation around the z-axis), and all weights
+    are set to 1 (because every particle is equally likely to be close to the
+    robot's readings).
+    """
     def initialize_particle_cloud(self):
         resolution = self.map.info.resolution
         map_width = resolution * self.map.info.width
@@ -129,8 +136,17 @@ class ParticleFilter:
         map_y_offset = self.map.info.origin.position.y
 
         for i in range(self.num_particles):
+            """
+            x and y are set to some random distance within the map's boundaries,
+            plus the offset of the origin (which is -10, -10  at the time of
+            writing).
+            """
             x = random_sample() * map_width + map_x_offset
             y = random_sample() * map_height + map_y_offset
+            """
+            The z-axis is set to be random, as this would correspond to some
+            direction the robot would be facing, level to the ground.
+            """
             x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
             q = quaternion_from_euler(x_rot, y_rot, z_rot)
             self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
@@ -140,6 +156,10 @@ class ParticleFilter:
         self.publish_particle_cloud()
 
 
+    """
+    normalize_particles: Normalizes the weights of the particles such that the
+    sum of their weights is equal to 1.
+    """
     def normalize_particles(self):
         sum_weights = 0
         
@@ -160,7 +180,6 @@ class ParticleFilter:
         self.particles_pub.publish(particle_cloud_pose_array)
 
 
-
     def publish_estimated_robot_pose(self):
         robot_pose_estimate_stamped = PoseStamped()
         robot_pose_estimate_stamped.pose = self.robot_estimate
@@ -168,8 +187,8 @@ class ParticleFilter:
         self.robot_estimate_pub.publish(robot_pose_estimate_stamped)
 
 
-
     def resample_particles(self):
+        
         return None
         # TODO
 
