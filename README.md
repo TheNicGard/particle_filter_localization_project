@@ -13,3 +13,17 @@
 * Mon. April 19th - finish writing/testing `update_particle_weights_with_measurement_model`
 * Wed. April 21st - finish writing/testing `normalize_particles` and `resample_particles`
 * Fri. April 23rd - finish writing/testing `update_estimated_robot_pose`
+#### Writeup:
+* (objectives description, 2-3 sent.)
+* (high-level description, 1 para.)
+* **Code Implementation:**
+  * Initialization of particle cloud
+  * Movement model
+  * Measurement model
+  * Resampling
+  * Incorporation of noise
+  * Updating estimated robot pose
+  * Optimization of parameters
+* (challenges, 1 para.)
+* (future work, 1 para.)
+* (takeaways, 2 bullet points min.)
