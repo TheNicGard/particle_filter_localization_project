@@ -33,12 +33,13 @@ def get_yaw_from_pose(p):
     return yaw
 
 
-def draw_random_sample():
+def draw_random_sample(ls, n, probabilities):
     """ Draws a random sample of n elements from a given list of choices and their specified probabilities.
-    We recommend that you fill in this function using random_sample.
+    We recommend that you fill in this function using random_sample. Samples with replacement. 
     """
-    # TODO
-    return
+    # Implemented 
+    
+    return np.random.choice(ls, n, replace = True, p = probabilities)
 
 
 class Particle:
@@ -50,6 +51,23 @@ class Particle:
 
         # particle weight
         self.w = w
+
+        
+    #Implemented. get the yaw of the particle 
+    def get_theta(self):
+        return euler_from_quaternion([
+            self.pose.orientation.x, 
+            self.pose.orientation.y, 
+            self.pose.orientation.z, 
+            self.pose.orientation.w])[2]
+
+    #Implemented. Set the yaw of the particle
+    def set_theta(self, theta):
+        q = quaternion_from_euler(0.0, 0.0, theta)
+        self.pose.orientation.x = q[0]
+        self.pose.orientation.y = q[1]
+        self.pose.orientation.z = q[2]
+        self.pose.orientation.w = q[3]
 
 
 
@@ -276,9 +294,33 @@ class ParticleFilter:
 
     
     def update_particle_weights_with_measurement_model(self, data):
-        return None
-        # TODO
+        print('called')
+        # Implemented not tested 
+        curr_x = self.odom_pose.pose.position.x
+        old_x = self.odom_pose_last_motion_update.pose.position.x
+        curr_y = self.odom_pose.pose.position.y
+        old_y = self.odom_pose_last_motion_update.pose.position.y
+        curr_yaw = get_yaw_from_pose(self.odom_pose.pose)
+        old_yaw = get_yaw_from_pose(self.odom_pose_last_motion_update.pose)
+        
+        
+        #move in this direction
+        v_x = curr_x - old_x
+        v_y = curr_y - old_y
+        yaw = curr_yaw - old_yaw
 
+        #noise terms. sd is the standard deviation
+        sd = 0.1
+        n_x = np.random.normal(0,sd)
+        n_y = np.random.normal(0,sd)
+        n_yaw = np.random.normal(0,sd)
+        
+
+        for particle in self.particle_cloud:
+            particle.pose.position.x += v_x + n_x
+            particle.pose.position.y += v_y + n_y
+            particle.set_theta(particle.get_theta() + yaw + n_yaw)
+            
 
         
 
