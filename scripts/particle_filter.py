@@ -6,11 +6,14 @@ from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Quaternion, Point, Pose, PoseArray, PoseStamped
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Header, String
+import copy
 
 import tf
 from tf import TransformListener
 from tf import TransformBroadcaster
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from likelihood_field import LikelihoodField
+from measurement_update_likelihood_field import compute_prob_zero_centered_gaussian
 
 import numpy as np
 from numpy.random import random_sample
@@ -37,9 +40,11 @@ def draw_random_sample(ls, n, probabilities):
     """ Draws a random sample of n elements from a given list of choices and their specified probabilities.
     We recommend that you fill in this function using random_sample. Samples with replacement. 
     """
-    # Implemented 
+    # Implemented
     
-    return np.random.choice(ls, n, replace = True, p = probabilities)
+    choice = np.random.choice(len(ls), n, replace = True, p = probabilities)
+    
+    return [copy.deepcopy(ls[index]) for index in choice]
 
 
 class Particle:
@@ -106,6 +111,8 @@ class ParticleFilter:
         self.ang_mvmt_threshold = (np.pi / 6)
 
         self.odom_pose_last_motion_update = None
+
+        self.likelihood_field = LikelihoodField()
 
 
         # Setup publishers and subscribers
@@ -187,6 +194,7 @@ class ParticleFilter:
         for p in self.particle_cloud:
             p.w /= sum_weights
 
+
             
     def publish_particle_cloud(self):
         particle_cloud_pose_array = PoseArray()
@@ -206,9 +214,11 @@ class ParticleFilter:
 
 
     def resample_particles(self):
-        
-        return None
         # TODO
+        
+        self.particle_cloud = draw_random_sample(self.particle_cloud, self.num_particles,
+                                  [particle.w for particle in self.particle_cloud])
+        
 
 
 
@@ -292,10 +302,35 @@ class ParticleFilter:
         # TODO
 
 
+
+    def compute_likelihood(self, particle, data):
+        print("in likelihood")
+        x = particle.pose.position.x
+        y = particle.pose.position.y
+        p_theta = particle.get_theta()
+
+
+        cardinal_directions_idxs = [i for i in range(360)]
+
+        q = 1.0
+        for k in cardinal_directions_idxs:
+            zk = data.ranges[k]
+            if zk <= 3.5:
+                xk = x + zk*np.cos(p_theta + k*np.pi/180)
+                yk = y + zk*np.sin(p_theta + k*np.pi/180)
+                dist = self.likelihood_field.get_closest_obstacle_distance(xk,yk)
+                sd = 0.1
+                q *= compute_prob_zero_centered_gaussian(dist,sd)
+
+        return q
+                
     
     def update_particle_weights_with_measurement_model(self, data):
         #TODO
-        return None
+
+        for particle in self.particle_cloud:
+            particle.w = self.compute_likelihood(particle, data)
+            
 
         
 
@@ -304,7 +339,7 @@ class ParticleFilter:
         # based on the how the robot has moved (calculated from its odometry), we'll  move
         # all of the particles correspondingly
 
-        # Implemented not tested 
+        # Implemented
         curr_x = self.odom_pose.pose.position.x
         old_x = self.odom_pose_last_motion_update.pose.position.x
         curr_y = self.odom_pose.pose.position.y
@@ -323,10 +358,8 @@ class ParticleFilter:
         n_x = np.random.normal(0,sd)
         n_y = np.random.normal(0,sd)
         n_yaw = np.random.normal(0,sd)
-
-        print(v_x, n_x)
         
-
+        #update each particles position and angle
         for particle in self.particle_cloud:
             particle.pose.position.x += v_x + n_x
             particle.pose.position.y += v_y + n_y
@@ -339,7 +372,17 @@ if __name__=="__main__":
     
 
     pf = ParticleFilter()
-
+    r = rospy.Rate(0.5)
+    '''
+    while not rospy.is_shutdown():
+        for par in pf.particle_cloud:
+            par.w = 1
+        pf.normalize_particles()
+        print("sampling")
+        pf.resample_particles()
+        pf.publish_particle_cloud()
+        r.sleep()
+'''
     rospy.spin()
 
 
