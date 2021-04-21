@@ -294,7 +294,16 @@ class ParticleFilter:
 
     
     def update_particle_weights_with_measurement_model(self, data):
-        print('called')
+        #TODO
+        return None
+
+        
+
+    def update_particles_with_motion_model(self):
+
+        # based on the how the robot has moved (calculated from its odometry), we'll  move
+        # all of the particles correspondingly
+
         # Implemented not tested 
         curr_x = self.odom_pose.pose.position.x
         old_x = self.odom_pose_last_motion_update.pose.position.x
@@ -310,26 +319,19 @@ class ParticleFilter:
         yaw = curr_yaw - old_yaw
 
         #noise terms. sd is the standard deviation
-        sd = 0.1
+        sd = 0.01
         n_x = np.random.normal(0,sd)
         n_y = np.random.normal(0,sd)
         n_yaw = np.random.normal(0,sd)
+
+        print(v_x, n_x)
         
 
         for particle in self.particle_cloud:
             particle.pose.position.x += v_x + n_x
             particle.pose.position.y += v_y + n_y
             particle.set_theta(particle.get_theta() + yaw + n_yaw)
-            
-
         
-
-    def update_particles_with_motion_model(self):
-
-        # based on the how the robot has moved (calculated from its odometry), we'll  move
-        # all of the particles correspondingly
-        return None
-        # TODO
 
 
 
