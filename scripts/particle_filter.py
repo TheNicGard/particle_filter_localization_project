@@ -98,7 +98,7 @@ class ParticleFilter:
         self.map = OccupancyGrid()
 
         # the number of particles used in the particle filter
-        self.num_particles = 10000
+        self.num_particles = 20000#10000
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -215,7 +215,7 @@ class ParticleFilter:
 
     def resample_particles(self):
         # TODO
-        
+        print('resampling')
         self.particle_cloud = draw_random_sample(self.particle_cloud, self.num_particles,
                                   [particle.w for particle in self.particle_cloud])
         
@@ -300,18 +300,18 @@ class ParticleFilter:
         # based on the particles within the particle cloud, update the robot pose estimate
         return None
         # TODO
+        
 
 
 
     def compute_likelihood(self, particle, data):
-        print("in likelihood")
         x = particle.pose.position.x
         y = particle.pose.position.y
         p_theta = particle.get_theta()
 
 
-        cardinal_directions_idxs = [i for i in range(360)]
-
+        #cardinal_directions_idxs = [i for i in range(360)]
+        cardinal_directions_idxs = [0,90,180,270]
         q = 1.0
         for k in cardinal_directions_idxs:
             zk = data.ranges[k]
@@ -319,17 +319,24 @@ class ParticleFilter:
                 xk = x + zk*np.cos(p_theta + k*np.pi/180)
                 yk = y + zk*np.sin(p_theta + k*np.pi/180)
                 dist = self.likelihood_field.get_closest_obstacle_distance(xk,yk)
+                #print('dist = ', dist)
                 sd = 0.1
-                q *= compute_prob_zero_centered_gaussian(dist,sd)
-
+                prob = compute_prob_zero_centered_gaussian(dist,sd)
+                #print('prob = ', prob)
+                q *= prob
+                
         return q
                 
     
     def update_particle_weights_with_measurement_model(self, data):
         #TODO
 
-        for particle in self.particle_cloud:
+        
+        for particle in self.particle_cloud:       
             particle.w = self.compute_likelihood(particle, data)
+            if math.isnan(particle.w):
+                particle.w = 0
+            
             
 
         
@@ -365,24 +372,12 @@ class ParticleFilter:
             particle.pose.position.y += v_y + n_y
             particle.set_theta(particle.get_theta() + yaw + n_yaw)
         
-
-
+        
 
 if __name__=="__main__":
     
 
     pf = ParticleFilter()
-    r = rospy.Rate(0.5)
-    '''
-    while not rospy.is_shutdown():
-        for par in pf.particle_cloud:
-            par.w = 1
-        pf.normalize_particles()
-        print("sampling")
-        pf.resample_particles()
-        pf.publish_particle_cloud()
-        r.sleep()
-'''
     rospy.spin()
 
 
