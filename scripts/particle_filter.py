@@ -98,7 +98,7 @@ class ParticleFilter:
         self.map = OccupancyGrid()
 
         # the number of particles used in the particle filter
-        self.num_particles = 10000#10000
+        self.num_particles = 20000#10000
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -159,38 +159,23 @@ class ParticleFilter:
         map_height = int(resolution * self.map.info.height)
         map_x_offset = self.map.info.origin.position.x
         map_y_offset = self.map.info.origin.position.y
-        print(resolution)
-        #for i in range(100000):
-         #   if self.map.data[i] == 0:
-          #      print(i)
-        print(map_width, map_height)
+        inside_house = []
 
         for i in range(self.map.info.width):
             for j in range(self.map.info.height):
-                #print(i*map_width + j)
                 if self.map.data[j*self.map.info.width + i] == 0:
-                    x = resolution * i + map_x_offset
-                    y = resolution *j + map_y_offset
-                    x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
-                    q = quaternion_from_euler(x_rot, y_rot, z_rot)
-                    self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
+                    inside_house.append((i,j))
 
-        # for i in range(self.num_particles):
-        #     """
-        #     x and y are set to some random distance within the map's boundaries,
-        #     plus the offset of the origin (which is -10, -10  at the time of
-        #     writing).
-        #     """
-        #     x = random_sample() * map_width + map_x_offset
-        #     y = random_sample() * map_height + map_y_offset
-        #     """
-        #     The z-axis is set to be random, as this would correspond to some
-        #     direction the robot would be facing, level to the ground.
-        #     """
-        #     x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
-        #     q = quaternion_from_euler(x_rot, y_rot, z_rot)
-        #     self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
-            
+
+        for i in range(self.num_particles):
+            index = np.random.randint(len(inside_house))
+            location = inside_house[index]
+            x = resolution * location[0] + map_x_offset
+            y = resolution * location[1] + map_y_offset
+            x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
+            q = quaternion_from_euler(x_rot, y_rot, z_rot)
+            self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
+
         self.normalize_particles()
 
         self.publish_particle_cloud()
@@ -352,8 +337,8 @@ class ParticleFilter:
         p_theta = particle.get_theta()
 
 
-        #cardinal_directions_idxs = [i for i in range(360)]
-        cardinal_directions_idxs = [0,90,180,270]
+        cardinal_directions_idxs = [0,45,90,135,180,225,270,315]
+        #cardinal_directions_idxs = [0,90,180,270]
         q = 1.0
         for k in cardinal_directions_idxs:
             zk = data.ranges[k]
