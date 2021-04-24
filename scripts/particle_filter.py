@@ -98,7 +98,7 @@ class ParticleFilter:
         self.map = OccupancyGrid()
 
         # the number of particles used in the particle filter
-        self.num_particles = 20000#10000
+        self.num_particles = 10000#10000
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -134,6 +134,7 @@ class ParticleFilter:
         self.tf_broadcaster = TransformBroadcaster()
 
 
+        rospy.sleep(1)
         # intialize the particle cloud
         self.initialize_particle_cloud()
 
@@ -143,7 +144,6 @@ class ParticleFilter:
     """ get_map: callback method for to set the map variable. """
     def get_map(self, data):
         self.map = data
-
 
     """
     initialize_particle_cloud: initialize the particle cloud. Creates
@@ -155,26 +155,41 @@ class ParticleFilter:
     """
     def initialize_particle_cloud(self):
         resolution = self.map.info.resolution
-        map_width = resolution * self.map.info.width
-        map_height = resolution * self.map.info.height
+        map_width = int(resolution * self.map.info.width)
+        map_height = int(resolution * self.map.info.height)
         map_x_offset = self.map.info.origin.position.x
         map_y_offset = self.map.info.origin.position.y
+        print(resolution)
+        #for i in range(100000):
+         #   if self.map.data[i] == 0:
+          #      print(i)
+        print(map_width, map_height)
 
-        for i in range(self.num_particles):
-            """
-            x and y are set to some random distance within the map's boundaries,
-            plus the offset of the origin (which is -10, -10  at the time of
-            writing).
-            """
-            x = random_sample() * map_width + map_x_offset
-            y = random_sample() * map_height + map_y_offset
-            """
-            The z-axis is set to be random, as this would correspond to some
-            direction the robot would be facing, level to the ground.
-            """
-            x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
-            q = quaternion_from_euler(x_rot, y_rot, z_rot)
-            self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
+        for i in range(self.map.info.width):
+            for j in range(self.map.info.height):
+                #print(i*map_width + j)
+                if self.map.data[j*self.map.info.width + i] == 0:
+                    x = resolution * i + map_x_offset
+                    y = resolution *j + map_y_offset
+                    x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
+                    q = quaternion_from_euler(x_rot, y_rot, z_rot)
+                    self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
+
+        # for i in range(self.num_particles):
+        #     """
+        #     x and y are set to some random distance within the map's boundaries,
+        #     plus the offset of the origin (which is -10, -10  at the time of
+        #     writing).
+        #     """
+        #     x = random_sample() * map_width + map_x_offset
+        #     y = random_sample() * map_height + map_y_offset
+        #     """
+        #     The z-axis is set to be random, as this would correspond to some
+        #     direction the robot would be facing, level to the ground.
+        #     """
+        #     x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
+        #     q = quaternion_from_euler(x_rot, y_rot, z_rot)
+        #     self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
             
         self.normalize_particles()
 
@@ -298,8 +313,35 @@ class ParticleFilter:
 
     def update_estimated_robot_pose(self):
         # based on the particles within the particle cloud, update the robot pose estimate
-        return None
-        # TODO
+        x_avg = 0
+        y_avg = 0
+        theta_avg = 0
+
+        #compute average positions and angles over every particle
+        for particle in self.particle_cloud:
+            x = particle.pose.position.x
+            y = particle.pose.position.y
+            theta = particle.get_theta()
+            x_avg += x
+            y_avg += y
+            theta_avg += theta
+        
+        x_avg /= self.num_particles
+        y_avg /= self.num_particles
+        theta_avg /= self.num_particles
+
+        
+        self.robot_estimate.position.x = x_avg
+        self.robot_estimate.position.y = y_avg
+
+
+        #set the orientation
+        q = quaternion_from_euler(0.0, 0.0, theta_avg)
+        self.robot_estimate.orientation.x = q[0]
+        self.robot_estimate.orientation.y = q[1]
+        self.robot_estimate.orientation.z = q[2]
+        self.robot_estimate.orientation.w = q[3]
+        
         
 
 
