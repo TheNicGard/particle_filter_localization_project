@@ -17,7 +17,7 @@
 * (objectives description, 2-3 sent.)
 * (high-level description, 1 para.)
 * **Code Implementation:**
-  * Initialization of particle cloud
+  * Initialization of particle cloud: this is implemented in `initialize_particle_cloud`, `normalize_particles`. `initialize_particle_cloud` gets the dimensions of the map, and iterates over every unoccupied point on the map's surface. If the point is unoccupied, the function adds a particle to the particle array with a random rotation around the z-axis (so that the particle faces away paralell to the ground) and with a weight of 1. `normalize_particles` normalizes the weights of the particles such that the sum of their weights is equal to one.
   * Movement model
   * Measurement model
   * Resampling
