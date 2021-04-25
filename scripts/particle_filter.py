@@ -405,13 +405,14 @@ class ParticleFilter:
         yaw = curr_yaw - old_yaw
 
         #noise terms. sd is the standard deviation
-        sd = 0.01
-        n_x = np.random.normal(0,sd)
-        n_y = np.random.normal(0,sd)
-        n_yaw = np.random.normal(0,sd)
+        sd = 0.1
         
         #update each particles position and angle
         for particle in self.particle_cloud:
+            n_x = np.random.uniform(0,2 * sd) - sd
+            n_y = np.random.uniform(0,2 * sd) - sd
+            n_yaw = np.random.uniform(0,2 * sd) - sd
+        
             particle.pose.position.x += v_x + n_x
             particle.pose.position.y += v_y + n_y
             particle.set_theta(particle.get_theta() + yaw + n_yaw)
