@@ -146,10 +146,10 @@ class ParticleFilter:
         self.map = data
 
     """
-    initialize_particle_cloud: initialize the particle cloud. Creates
-    num_particles particles across the map, based on the width and height of the
-    map (adjusted for the resolution of the map and its origin). Each particle
-    has a random x, y, and theta (rotation around the z-axis), and all weights
+    initialize_particle_cloud: initialize the particle cloud. Creates a particle
+    at every point on the map, based on the width and height of the map's cell
+    dimension (adjusted for the resolution of the map and its origin). Each
+    particle has a random theta (rotation around the z-axis), and all weights
     are set to 1 (because every particle is equally likely to be close to the
     robot's readings).
     """
@@ -159,8 +159,12 @@ class ParticleFilter:
         map_height = int(resolution * self.map.info.height)
         map_x_offset = self.map.info.origin.position.x
         map_y_offset = self.map.info.origin.position.y
-        inside_house = []
 
+        inside_house = []
+        """
+        Iterate over every point on the map (by the map's cell dimension),
+        and add a particle if that location is unoccupied.
+        """
         for i in range(self.map.info.width):
             for j in range(self.map.info.height):
                 if self.map.data[j*self.map.info.width + i] == 0:
@@ -170,11 +174,21 @@ class ParticleFilter:
         for i in range(self.num_particles):
             index = np.random.randint(len(inside_house))
             location = inside_house[index]
+            """
+            x and y are set to the location on the surface of the map,
+            determined by the above loop.
+            """
             x = resolution * location[0] + map_x_offset
             y = resolution * location[1] + map_y_offset
+
+            """
+            The z-axis is set to be random, as this would correspond to
+            some direction the robot would be facing, level to the ground.
+            """
             x_rot, y_rot, z_rot = 0, 0, random_sample() * 2 * math.pi
             q = quaternion_from_euler(x_rot, y_rot, z_rot)
             self.particle_cloud.append(Particle(Pose(Point(x, y, 0), Quaternion(q[0], q[1], q[2], q[3])), w=1))
+
 
         self.normalize_particles()
 
@@ -195,7 +209,10 @@ class ParticleFilter:
             p.w /= sum_weights
 
 
-            
+    """
+    publish_particle_cloud: Adds the pose of each particle array to a PoseArray
+    so that they can be displayed.
+    """
     def publish_particle_cloud(self):
         particle_cloud_pose_array = PoseArray()
         particle_cloud_pose_array.header = Header(stamp=rospy.Time.now(), frame_id=self.map_topic)
