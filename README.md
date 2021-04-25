@@ -40,3 +40,7 @@ Optimizing the parameters more could be a good idea. Trying to find the balance 
 * It is a good idea to work on, finish, and test different modules of the project separately. For instance, in this project the movement model, the measurement model, the initialization step, and resampling can all be tested separately. This helps identify the bugs in the script much more efficiently.
 
 * The edge cases due to arithmetic imprecision and scanning noise should be handled. An example of this would be in the case where we were getting `nan` values `get_closest_obstacle_distance` due to the particles moving out of the map. This caused the whole resampling process to fail, but was fixed when we handled `nan`s separately. Another example is in the case when we used all of the angle measurements in the likelihood model. This caused the returned probability to be too small and treated as a 0, and the problem was fixed when we used only a few angles. 
+
+**GIF Demonstration:**
+
+![GIF demonstration of the particle filter localization in effect.](demonstration.gif)
