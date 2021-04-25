@@ -98,7 +98,7 @@ class ParticleFilter:
         self.map = OccupancyGrid()
 
         # the number of particles used in the particle filter
-        self.num_particles = 20000#10000
+        self.num_particles = 10000#10000
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -230,8 +230,8 @@ class ParticleFilter:
         self.robot_estimate_pub.publish(robot_pose_estimate_stamped)
 
 
+    #Resample with replacement from the particle cloud with respect to the weights of the particles
     def resample_particles(self):
-        # TODO
         print('resampling')
         self.particle_cloud = draw_random_sample(self.particle_cloud, self.num_particles,
                                   [particle.w for particle in self.particle_cloud])
@@ -332,7 +332,7 @@ class ParticleFilter:
         y_avg /= self.num_particles
         theta_avg /= self.num_particles
 
-        
+        #set x and y
         self.robot_estimate.position.x = x_avg
         self.robot_estimate.position.y = y_avg
 
@@ -347,7 +347,7 @@ class ParticleFilter:
         
 
 
-
+    #compute the likelihood of one particle based on the data
     def compute_likelihood(self, particle, data):
         x = particle.pose.position.x
         y = particle.pose.position.y
@@ -355,7 +355,8 @@ class ParticleFilter:
 
 
         cardinal_directions_idxs = [0,45,90,135,180,225,270,315]
-        #cardinal_directions_idxs = [0,90,180,270]
+
+        #The algorithm we saw in class
         q = 1.0
         for k in cardinal_directions_idxs:
             zk = data.ranges[k]
@@ -363,19 +364,15 @@ class ParticleFilter:
                 xk = x + zk*np.cos(p_theta + k*np.pi/180)
                 yk = y + zk*np.sin(p_theta + k*np.pi/180)
                 dist = self.likelihood_field.get_closest_obstacle_distance(xk,yk)
-                #print('dist = ', dist)
                 sd = 0.1
                 prob = compute_prob_zero_centered_gaussian(dist,sd)
-                #print('prob = ', prob)
                 q *= prob
                 
         return q
                 
     
+    #for each particle compute it's likelihood under the measurement model. Discard if nan is returned.
     def update_particle_weights_with_measurement_model(self, data):
-        #TODO
-
-        
         for particle in self.particle_cloud:       
             particle.w = self.compute_likelihood(particle, data)
             if math.isnan(particle.w):
@@ -390,7 +387,7 @@ class ParticleFilter:
         # based on the how the robot has moved (calculated from its odometry), we'll  move
         # all of the particles correspondingly
 
-        # Implemented
+        # Get the current and previous poses
         curr_x = self.odom_pose.pose.position.x
         old_x = self.odom_pose_last_motion_update.pose.position.x
         curr_y = self.odom_pose.pose.position.y
@@ -404,15 +401,15 @@ class ParticleFilter:
         v_y = curr_y - old_y
         yaw = curr_yaw - old_yaw
 
-        #noise terms. sd is the standard deviation
+        #noise terms. sd is (kind of) the standard deviation
         sd = 0.1
         
-        #update each particles position and angle
+        #update each particles position and angle. n are the noise terms
         for particle in self.particle_cloud:
-            n_x = np.random.uniform(0,2 * sd) - sd
-            n_y = np.random.uniform(0,2 * sd) - sd
-            n_yaw = np.random.uniform(0,2 * sd) - sd
-        
+            n_x = np.random.uniform(-sd,sd) 
+            n_y = np.random.uniform(-sd,sd) 
+            n_yaw = np.random.uniform(-sd,sd) 
+
             particle.pose.position.x += v_x + n_x
             particle.pose.position.y += v_y + n_y
             particle.set_theta(particle.get_theta() + yaw + n_yaw)
