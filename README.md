@@ -35,4 +35,8 @@ The first challenge we faced was publishing the particles seemed difficult at fi
 
 Optimizing the parameters more could be a good idea. Trying to find the balance of having more cardinal directions can be one method. This will make the model slower, but it may increase the accuracy if the number of directions are not too high. Furthermore, using numpy arrays instead of lists to store certain properties of particles could be a good idea, such as the weights and the positions. This is because numpy methods are much faster compared to plain python loops since they use C++ core functionalities. This would come in handy when normalizing particles, calculating averages, updating positions, etc. Another improvement could be adding a small amount of new particles after each resampling step. This would help if we get unlucky in the first couple of resamples and have no particles close to the robots position. 
 
-(takeaways, 2 bullet points min.)
+**Takeaways:**
+
+* It is a good idea to work on, finish, and test different modules of the project separately. For instance, in this project the movement model, the measurement model, the initialization step, and resampling can all be tested separately. This helps identify the bugs in the script much more efficiently.
+
+* The edge cases due to arithmetic imprecision and scanning noise should be handled. An example of this would be in the case where we were getting `nan` values `get_closest_obstacle_distance` due to the particles moving out of the map. This caused the whole resampling process to fail, but was fixed when we handled `nan`s separately. Another example is in the case when we used all of the angle measurements in the likelihood model. This caused the returned probability to be too small and treated as a 0, and the problem was fixed when we used only a few angles. 
