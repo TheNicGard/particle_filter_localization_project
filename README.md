@@ -26,6 +26,11 @@
   * Optimization of parameters: The parameters optimized were the standard deviation of the noise for the movement model `sd` and the number of particles `num_particles`. The noise was optimized based on the behaviour of the particle cloud after a couple of resampling steps. `num_particles` was optimized to balance the tradeoff between runtime speed and estimated pose accuracy.
   
 **Challenges:**
-The first challenge faced was how to generate the particle cloud inside the house. We overcame this problem by using `self.map.data` to check which points were grey. In the likelihood model, using every single angle of the lidar caused the weights to be 0, which messed with the sampling step. Furthermore, it made the model run slow. So, we only used angles 45 degrees apart. In the resampling step, resampling was done with replacement, which caused a change to one particle to reflect on others of the same kind. This was overcome by creating deep copies of the particles when resampling, so that each are treated differently. Another challenge was that we saw that using Gaussian noise for the movement model caused the model to run slowly, so we used a uniform noise model. 
-* (future work, 1 para.)
+The first challenge faced was how to generate the particle cloud inside the house. We overcame this problem by using `self.map.data` to check which points were grey. In the likelihood model, using every single angle of the lidar caused the weights to be 0, which messed with the sampling step. Furthermore, it made the model run slow. So, we only used angles 45 degrees apart. In the resampling step, resampling was done with replacement, which caused a change to one particle to reflect on others of the same kind. This was overcome by creating deep copies of the particles when resampling, so that each are treated differently. Another challenge was that we saw that using Gaussian noise for the movement model caused the model to run slowly, so we used a uniform noise model.
+
+
+**Future Work:**
+
+Optimizing the parameters more could be a good idea. Trying to find the balance of having more cardinal directions can be one method. This will make the model slower, but it may increase the accuracy if the number of directions are not too high. Furthermore, using numpy arrays instead of lists to store certain properties of particles could be a good idea, such as the weights and the positions. This is because numpy methods are much faster compared to plain python loops since they use C++ core functionalities. This would come in handy when normalizing particles, calculating averages, updating positions, etc. 
+
 * (takeaways, 2 bullet points min.)
